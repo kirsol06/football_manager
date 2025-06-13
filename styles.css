@@ -426,7 +426,7 @@ body {
 
 /* Стили для плаката на стадионе */
 .stadium-poster-container {
-    background-image: url('stadium_for_posters.png');
+    background-image: url('picture_for_posters.jpeg');
     background-size: cover;
     width: 300px;
     height: 200px;
@@ -440,12 +440,13 @@ body {
     background-repeat: no-repeat;
     background-position: center;
     background-color: white;
-    width: 200px;
-    height: 120px;
+    width: 150px;
+    height: 90px;
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 29%;      
+    left: 55%;      
     transform: translate(-50%, -50%);
     border: 2px solid #000;
     padding: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }

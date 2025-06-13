@@ -30,7 +30,6 @@ const screenContent = document.getElementById('screen-content');   // Основ
 const screenActions = document.getElementById('screen-actions');   // Блок с кнопками действий
 const screenMessages = document.getElementById('screen-messages'); // Блок сообщений
 
-
 // Очищает экран (контент, действия и сообщения)
 function clearScreen() {
     screenContent.innerHTML = '';
@@ -496,7 +495,7 @@ function showTeamAndOpponents() {
         p.appendChild(teamSpan);
         
         // Рейтинг команды
-        const ratingText = document.createTextNode(` (Рейтинг: ${gameState.teamRatings[opponent]})`);
+        const ratingText = document.createTextNode(` (Рейтинг: ${gameState.teamRatings[opponent]}⭐)`);
         p.appendChild(ratingText);
         
         opponentsList.appendChild(p);
@@ -565,7 +564,7 @@ function showMatchPreparationScreen() {
             <img src="images_of_teams/${gameState.currentOpponent}.png" class="team-logo" alt="${gameState.currentOpponent}">
             ${gameState.currentOpponent}
         </span>
-        (Рейтинг: ${gameState.currentOpponentRating})
+        (Рейтинг: ${gameState.currentOpponentRating}⭐)
         `;
     screenContent.appendChild(opponentInfo);
     
@@ -987,7 +986,7 @@ function tryShowPostersScreen() {
     
     // Проверяем наличие денег
     if (gameState.coins < 10) {
-        addMessage(`Не хватает🪙! Нужно 10, у вас ${gameState.coins}`);
+        addMessage(`Не хватает <img src="coin.png" class="team-logo">! Нужно 10, у вас ${gameState.coins}`);
         return;
     }
     
@@ -1046,12 +1045,12 @@ function showPostersScreen() {
     
     // Добавляем кнопки действий
     if (!gameState.postersBought) {
-        addAction('Сохранить плакат (10🪙)', () => {
+        addAction('Сохранить плакат (10<img src="coin.png" class="team-logo">)', () => {
             if (gameState.coins >= 10) {
                 savePoster(canvas);
                 showPosterConfirmation();
             } else {
-                addMessage('Недостаточно🪙!');
+                addMessage('Недостаточно <img src="coin.png" class="team-logo">!');
             }
         });
     }
@@ -1181,7 +1180,7 @@ async function playMatch() {
     
     const opponentDisplay = document.createElement('div');
     opponentDisplay.className = 'opponent-info';
-    opponentDisplay.textContent = `Рейтинг команды противника: ${opponentRating}⭐`;
+    opponentDisplay.textContent = `Рейтинг команды ${gameState.currentOpponent}: ${opponentRating}⭐`;
     screenContent.appendChild(opponentDisplay);
     
     // Рассчитываем вероятности победы
@@ -1208,7 +1207,7 @@ async function playMatch() {
             const negativeEvents = [
                 `У нападающего умер хомячок, у него депрессия (${2 * randIncident}% к шансу забить гол)`,
                 `Ключевой игрок поссорился с тренером (${2 * randIncident}% к шансу победы)`,
-                `Центральный защитник в Теремке и отравился (${2 * randIncident}% к шансу победы)`
+                `Центральный защитник отравился в Теремке (${2 * randIncident}% к шансу победы)`
             ];
             eventText = negativeEvents[Math.floor(Math.random() * negativeEvents.length)];
         }
@@ -1243,7 +1242,7 @@ async function playMatch() {
     screenContent.appendChild(probabilityDisplay);
     
     const oppProbabilityDisplay = document.createElement('div');
-    oppProbabilityDisplay.textContent = `Вероятность победы противника: ${Math.round(oppWinProbability)}%`;
+    oppProbabilityDisplay.textContent = `Вероятность победы ${gameState.currentOpponent}: ${Math.round(oppWinProbability)}%`;
     screenContent.appendChild(oppProbabilityDisplay);
     
     // Если есть плакат - отображаем его
@@ -1310,9 +1309,9 @@ async function playMatch() {
         // Атака соперника
         if (Math.random() < (oppWinProbability) / 100) {
             opponentGoals++;
-            addMessage(`Противник: ${goalPhrases.opponentGoal[Math.floor(Math.random() * goalPhrases.opponentGoal.length)]} Счет: ${yourGoals} - ${opponentGoals}`);
+            addMessage(`${gameState.currentOpponent}: ${goalPhrases.opponentGoal[Math.floor(Math.random() * goalPhrases.opponentGoal.length)]} Счет: ${yourGoals} - ${opponentGoals}`);
         } else {
-            addMessage(`Противник: ${goalPhrases.opponentMiss[Math.floor(Math.random() * goalPhrases.opponentMiss.length)]} Счет: ${yourGoals} - ${opponentGoals}`);
+            addMessage(`${gameState.currentOpponent}: ${goalPhrases.opponentMiss[Math.floor(Math.random() * goalPhrases.opponentMiss.length)]} Счет: ${yourGoals} - ${opponentGoals}`);
         }
         
         await sleep(3000);
@@ -1349,8 +1348,8 @@ async function playMatch() {
         const ratingAfterReset = calculateTeamRating(gameState.team);
         
         addMessage('Бонус от плакатов больше не действует');
-        addMessage(`Рейтинг до сброса: ${ratingBeforeReset}`);
-        addMessage(`Текущий рейтинг: ${ratingAfterReset}`);
+        addMessage(`Рейтинг до сброса: ${ratingBeforeReset}⭐`);
+        addMessage(`Текущий рейтинг: ${ratingAfterReset}⭐`);
     }
 
     addMessage(`Ваш баланс: ${gameState.coins}<img src="coin.png" class="team-logo">.`);
@@ -1462,7 +1461,7 @@ async function playPlayoffMatch(stage) {
     // Отображаем рейтинг команды соперника
     const opponentDisplay = document.createElement('div');
     opponentDisplay.className = 'opponent-info';
-    opponentDisplay.textContent = `Рейтинг команды противника: ${opponentRating}⭐`;
+    opponentDisplay.textContent = `Рейтинг команды ${gameState.currentOpponent}: ${opponentRating}⭐`;
     screenContent.appendChild(opponentDisplay);
     
     // Рассчитываем базовые вероятности победы (50% + разница рейтингов)
@@ -1521,11 +1520,11 @@ async function playPlayoffMatch(stage) {
     
     // Отображаем текущие вероятности победы
     const probabilityDisplay = document.createElement('div');
-    probabilityDisplay.textContent = `Вероятность победы '${gameState.yourTeamName}': ${Math.round(yourWinProbability)}%`;
+    probabilityDisplay.textContent = `Вероятность вашей победы '${gameState.yourTeamName}': ${Math.round(yourWinProbability)}%`;
     screenContent.appendChild(probabilityDisplay);
     
     const oppProbabilityDisplay = document.createElement('div');
-    oppProbabilityDisplay.textContent = `Вероятность победы противника: ${Math.round(oppWinProbability)}%`;
+    oppProbabilityDisplay.textContent = `Вероятность победы ${gameState.currentOpponent}: ${Math.round(oppWinProbability)}%`;
     screenContent.appendChild(oppProbabilityDisplay);
     
     // Если есть плакат - отображаем его
@@ -1594,9 +1593,9 @@ async function playPlayoffMatch(stage) {
         // Атака соперника
         if (Math.random() < (oppWinProbability) / 100) {
             opponentGoals++;
-            addMessage(`Противник: ${goalPhrases.opponentGoal[Math.floor(Math.random() * goalPhrases.opponentGoal.length)]} Счет: ${yourGoals} - ${opponentGoals}`);
+            addMessage(`${gameState.currentOpponent}: ${goalPhrases.opponentGoal[Math.floor(Math.random() * goalPhrases.opponentGoal.length)]} Счет: ${yourGoals} - ${opponentGoals}`);
         } else {
-            addMessage(`Противник: ${goalPhrases.opponentMiss[Math.floor(Math.random() * goalPhrases.opponentMiss.length)]} Счет: ${yourGoals} - ${opponentGoals}`);
+            addMessage(`${gameState.currentOpponent}: ${goalPhrases.opponentMiss[Math.floor(Math.random() * goalPhrases.opponentMiss.length)]} Счет: ${yourGoals} - ${opponentGoals}`);
         }
         
         await sleep(3000); // Пауза между атаками
