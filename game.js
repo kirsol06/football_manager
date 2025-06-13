@@ -1,26 +1,27 @@
 // Игровые переменные
 const gameState = {
-    players: [],                // Массив всех игроков в игре
-    team: [],                   // Текущая команда игрока
-    teamRatings: {},            // Рейтинги всех команд
-    opponents: [],              // Список соперников в турнире
-    coins: 100,                 // Количество футкоинов у игрока
-    postersBought: false,       // Флаг покупки плакатов
-    yourTeamName: "",           // Название команды игрока
-    wins: 0,                    // Количество побед
-    draws: 0,                   // Количество ничьих
-    loses: 0,                   // Количество поражений
-    prefinal_res: 0,            // Результат полуфинала (1 - победа)
-    final_res: 0,               // Результат финала (1 - победа)
-    currentMatch: 0,            // Текущий матч в турнире
-    inPlayoff: false,           // Флаг участия в плей-офф
-    currentOpponent: "",        // Текущий соперник
-    currentOpponentRating: 0,   // Рейтинг текущего соперника
-    tempBoost: 0,               // Временный бонус к рейтингу
-    playerPoster: null,         // Изображение плаката игрока
-    currentTransferMarket: [],  // Текущий трансферный рынок
-    playoffOpponent: "",        // Соперник в полуфинале
-    finalOpponent: ""           // Соперник в финале
+    players: [],                    // Массив всех игроков в игре
+    team: [],                       // Текущая команда игрока
+    teamRatings: {},                // Рейтинги всех команд
+    opponents: [],                  // Список соперников в турнире
+    coins: 100,                     // Количество футкоинов у игрока
+    postersBought: false,           // Флаг покупки плакатов
+    yourTeamName: "",               // Название команды игрока
+    wins: 0,                        // Количество побед
+    draws: 0,                       // Количество ничьих
+    loses: 0,                       // Количество поражений
+    prefinal_res: 0,                // Результат полуфинала (1 - победа)
+    final_res: 0,                   // Результат финала (1 - победа)
+    currentMatch: 0,                // Текущий матч в турнире
+    inPlayoff: false,               // Флаг участия в плей-офф
+    currentOpponent: "",            // Текущий соперник
+    currentOpponentRating: 0,       // Рейтинг текущего соперника
+    tempBoost: 0,                   // Временный бонус к рейтингу
+    playerPoster: null,             // Изображение плаката игрока
+    playerPosterStadium: null,      // Изображение плаката игрока на стадионе
+    currentTransferMarket: [],      // Текущий трансферный рынок
+    playoffOpponent: "",            // Соперник в полуфинале
+    finalOpponent: ""               // Соперник в финале
 };
 
 // DOM элементы
@@ -37,22 +38,21 @@ function clearScreen() {
     screenMessages.innerHTML = '';
 }
 
-
-// Добавляет сообщение в лог событий
-function addMessage(text) {
+// Добавляет сообщение в лог событий (с поддержкой HTML)
+function addMessage(html) {
     const message = document.createElement('div');
     message.className = 'match-event';
-    message.textContent = text; // Текст сообщения
+    message.innerHTML = html; // Используем innerHTML 
     screenMessages.appendChild(message);
     screenMessages.scrollTop = screenMessages.scrollHeight;
 }
 
-// Добавляет кнопку действия
-function addAction(text, callback) {
+// Добавляет кнопку действия (с поддержкой HTML)
+function addAction(html, callback) {
     const button = document.createElement('button');
     button.className = 'action-btn';
-    button.textContent = text; // Текст на кнопке
-    button.addEventListener('click', callback); // Обработка клика
+    button.innerHTML = html; // Используем innerHTML 
+    button.addEventListener('click', callback);
     screenActions.appendChild(button);
 }
 
@@ -69,6 +69,58 @@ function addInputAction(text, placeholder, callback) {
     button.textContent = text; // Текст на кнопке
     button.addEventListener('click', () => callback(input.value)); // Обработка клика
     screenActions.appendChild(button);
+}
+
+// Добавляет выпадающий список игроков с кнопкой выбора
+function addPlayerSelector(promptText, playersList, callback, buttonText = 'Выбрать') {
+    const container = document.createElement('div');
+    container.className = 'player-select-container';
+    
+    const select = document.createElement('select');
+    select.className = 'player-select';
+    
+    // Добавляем заглавный элемент с подсказкой
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.innerHTML = promptText;
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    select.appendChild(defaultOption);
+    
+    // Заполняем список игроками
+    playersList.forEach((player, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        
+        let optionText = `${index + 1}. ${player.name} `;
+        optionText += `(${player.team}) `;
+        optionText += `- ${player.pos} - ${player.rating}`;
+        option.innerHTML = optionText;
+        select.appendChild(option);
+    });
+    
+    const button = document.createElement('button');
+    button.className = 'action-btn';
+    button.textContent = buttonText;
+    
+    button.addEventListener('click', () => {
+        if (select.value === '') {
+            addMessage('Пожалуйста, выберите игрока');
+            return;
+        }
+        
+        // Блокируем элементы после выбора
+        select.disabled = true;
+        button.textContent = 'Выбрано';
+        button.classList.add('selected');
+        
+        // Вызываем callback с выбранным игроком
+        callback(parseInt(select.value));
+    });
+    
+    container.appendChild(select);
+    container.appendChild(button);
+    screenActions.appendChild(container);
 }
 
 // Задержка выполнения (для анимаций)
@@ -180,7 +232,7 @@ function displayRules() {
         "⭐ <strong>Рейтинг игроков:</strong> Игроки имеют рейтинг от 1 до 10 (можно повысить до 12 с помощью тренировок 📈)",
         "📊 <strong>Командный рейтинг:</strong> Сумма рейтингов + бонус за сыгранность (+1, если пара игроков из одной команды РПЛ 🏆)",
         "🏟️ <strong>Турнирная система:</strong> Сначала групповой этап (3 матча ⏱️), затем плей-офф, если вы набрали 4 очка ✅",
-        "🪙 <strong>Футкоины:</strong> За победы (+50) и ничьи (+20) получаете футкоины для улучшения команды 💸",
+        `<img src="coin.png" class="team-logo"> <strong>Футкоины:</strong> За победы (+50) и ничьи (+20) получаете футкоины для улучшения команды 💸`,
         "🛒 <strong>Улучшения:</strong> Тратьте футкоины на: новых игроков 👥, тренировки 🏋️‍♂️ или плакаты 🖼️",
         "🔄 <strong>Покупка/продажа игроков:</strong> Чтобы купить нового игрока, нужно продать одного из своей команды (с той же позиции) ↔️",
         "💼 <strong>Комиссия:</strong> При покупке/продаже: комиссия 20 футкоинов + разница между ценами игроков 💰",
@@ -322,7 +374,7 @@ function showRulesScreen() {
         "⭐ <strong>Рейтинг игроков:</strong> Игроки имеют рейтинг от 1 до 10 (можно повысить до 12 с помощью тренировок 📈)",
         "📊 <strong>Командный рейтинг:</strong> Сумма рейтингов + бонус за сыгранность (+1, если пара игроков из одной команды РПЛ 🏆)",
         "🏟️ <strong>Турнирная система:</strong> Сначала групповой этап (3 матча ⏱️), затем плей-офф, если вы набрали 4 очка ✅",
-        "🪙 <strong>Футкоины:</strong> За победы (+50) и ничьи (+20) получаете футкоины для улучшения команды 💸",
+        `<img src="coin.png" class="team-logo"> <strong>Футкоины:</strong> За победы (+50) и ничьи (+20) получаете футкоины для улучшения команды 💸`,
         "🛒 <strong>Улучшения:</strong> Тратьте футкоины на: новых игроков 👥, тренировки 🏋️‍♂️ или плакаты 🖼️",
         "🔄 <strong>Покупка/продажа игроков:</strong> Чтобы купить нового игрока, нужно продать одного из своей команды (с той же позиции) ↔️",
         "💼 <strong>Комиссия:</strong> При покупке/продаже: комиссия 20 футкоинов + разница между ценами игроков 💰",
@@ -399,7 +451,7 @@ function showTeamAndOpponents() {
     // Отображаем баланс игрока
     const coinsDisplay = document.createElement('div');
     coinsDisplay.className = 'coins-display';
-    coinsDisplay.textContent = `Ваш баланс: ${gameState.coins}🪙.`;
+    coinsDisplay.innerHTML = `Ваш баланс: ${gameState.coins}<img src="coin.png" class="team-logo">.`;
     screenContent.appendChild(coinsDisplay);
     
     // Отображаем название команды
@@ -501,7 +553,7 @@ function showMatchPreparationScreen() {
     // Отображаем баланс игрока
     const coinsDisplay = document.createElement('div');
     coinsDisplay.className = 'coins-display';
-    coinsDisplay.textContent = `Ваш баланс: ${gameState.coins}🪙`;
+    coinsDisplay.innerHTML = `Ваш баланс: ${gameState.coins}<img src="coin.png" class="team-logo">`;
     screenContent.appendChild(coinsDisplay);
     
     // Отображаем информацию о сопернике
@@ -523,11 +575,11 @@ function showMatchPreparationScreen() {
     screenContent.appendChild(teamInfo);
     displayTeam(gameState.team, gameState.tempBoost);
     
-    // Добавляем кнопки действий
+    // Добавляем кнопки действий (используем innerHTML для правильного отображения иконок)
     addAction('🔄 1. Покупка/продажа игроков', showTradeScreen);
-    addAction('👟 2. Футбольная тренировка (+2 или 3) - 30🪙', () => trainPlayer('football'));
-    addAction('💪 3. Тренировка по физподготовке (+1 или 2) - 20🪙', () => trainPlayer('fitness'));
-    addAction('🖼️ 4. Плакаты для болельщиков (+1 или 2 на один матч) - 10🪙', tryShowPostersScreen);
+    addAction(`👟 2. Футбольная тренировка (+2 или 3) - 30<img src="coin.png" class="team-logo">`, () => trainPlayer('football'));
+    addAction(`💪 3. Тренировка по физподготовке (+1 или 2) - 20<img src="coin.png" class="team-logo">`, () => trainPlayer('fitness'));
+    addAction(`🖼️ 4. Плакаты для болельщиков (+1 или 2 на один матч) - 10<img src="coin.png" class="team-logo">`, tryShowPostersScreen);
     addAction('📜 5. Посмотреть правила игры', displayRules);
     addAction('⚽ 6. Начать матч', playMatch);
 }
@@ -540,7 +592,7 @@ function showTradeScreen() {
     // Отображаем баланс игрока
     const coinsDisplay = document.createElement('div');
     coinsDisplay.className = 'coins-display';
-    coinsDisplay.textContent = `Ваш баланс: ${gameState.coins}🪙.`;
+    coinsDisplay.innerHTML = `Ваш баланс: ${gameState.coins}<img src="coin.png" class="team-logo">.`;
     screenContent.appendChild(coinsDisplay);
     
     // Отображаем текущий состав команды
@@ -558,7 +610,7 @@ function showTradeScreen() {
                 (<img src="images_of_teams/${player.team}.png" class="team-logo">
                 ${player.team})
             </span>
-            - ${player.pos_pic}${player.pos} - ⭐${player.rating} - ${player.rating * 10}🪙
+            - ${player.pos_pic}${player.pos} - ⭐${player.rating} - ${player.rating * 10}<img src="coin.png" class="team-logo">
         `;
         teamList.appendChild(p);
     });
@@ -602,7 +654,7 @@ function showTradeScreen() {
                         ${index + 1}. ${player.name} 
                             (<img src="images_of_teams/${player.team}.png" class="team-logo">
                             ${player.team})
-                        - ${player.pos_pic}${player.pos} - ⭐${player.rating} - ${player.rating * 10}🪙
+                        - ${player.pos_pic}${player.pos} - ⭐${player.rating} - ${player.rating * 10}<img src="coin.png" class="team-logo">
                     `;
                     availablePlayersList.appendChild(p);
                 });
@@ -611,20 +663,13 @@ function showTradeScreen() {
     }
     screenContent.appendChild(availablePlayersList);
 
-    // Добавляем поле для выбора игрока на продажу
-    addInputAction('Выбрать игрока для продажи', 'Введите номер игрока из вашей команды', (input) => {
-        const sellId = parseInt(input) - 1;
-        if (isNaN(sellId)) {
-            addMessage('Пожалуйста, введите число');
-            return;
-        }
-        
-        if (sellId >= 0 && sellId < gameState.team.length) {
-            showAvailablePlayersForTrade(sellId);
-        } else {
-            addMessage('Неверный номер игрока');
-        }
-    });
+    // Выбор игрока из выпадающего списка
+    addPlayerSelector(
+        '-- Выберите игрока для продажи --', 
+        gameState.team, 
+        (sellId) => showAvailablePlayersForTrade(sellId),
+        'Выбрать',
+    );
     
     addAction('Назад ⬅️', showMatchPreparationScreen);
 }
@@ -683,7 +728,7 @@ function showAvailablePlayersForTrade(sellId) {
     // Отображаем баланс игрока
     const coinsDisplay = document.createElement('div');
     coinsDisplay.className = 'coins-display';
-    coinsDisplay.textContent = `Ваш баланс: ${gameState.coins}🪙.`;
+    coinsDisplay.innerHTML = `Ваш баланс: ${gameState.coins}<img src="coin.png" class="team-logo">.`;
     screenContent.appendChild(coinsDisplay);
     
     // Отображаем заголовок с позицией
@@ -700,25 +745,18 @@ function showAvailablePlayersForTrade(sellId) {
                 (<img src="images_of_teams/${player.team}.png" class="team-logo">
                 ${player.team})
             </span>
-            - ${player.pos_pic}${player.pos} - ⭐${player.rating} - ${player.rating * 10}🪙
+            - ${player.pos_pic}${player.pos} - ⭐${player.rating} - ${player.rating * 10}<img src="coin.png" class="team-logo">
         `;
         screenContent.appendChild(p);
     });
     
-    // Добавляем поле для выбора игрока на покупку
-    addInputAction('Купить игрока', 'Введите номер игрока для покупки', (input) => {
-        const buyId = parseInt(input) - 1;
-        if (isNaN(buyId)) {
-            addMessage('Пожалуйста, введите число');
-            return;
-        }
-        
-        if (buyId >= 0 && buyId < availablePlayers.length) {
-            completeTrade(sellId, availablePlayers[buyId]);
-        } else {
-            addMessage('Неверный номер игрока');
-        }
-    });
+    // Выбор игрока из выпадающего списка
+    addPlayerSelector(
+        '-- Выберите игрока для покупки --',
+        availablePlayers,
+        (buyId) => completeTrade(sellId, availablePlayers[buyId]),
+        'Купить игрока'
+    );
     
     addAction('Назад ⬅️', showTradeScreen);
 }
@@ -746,10 +784,10 @@ async function completeTrade(sellId, boughtPlayer) {
     const price = boughtPlayer.rating * 10; // Цена покупаемого игрока
     const sellPrice = soldPlayer.rating * 10; // Цена продаваемого игрока
     const commission = 20; // Комиссия
-    const totalCost = price - sellPrice + commission; // Общая стоимость
-    if (totalCost <= 0) {
-        totalCost = 0; // Сделано, чтобы нельзя было зарабатывать на трансферах
-    } 
+    let totalCost = price - sellPrice + commission; // Общая стоимость
+    
+    // Убедимся, что стоимость не отрицательная
+    totalCost = Math.max(0, totalCost);
 
     // Проверяем, хватает ли денег на сделку
     if (gameState.coins >= totalCost) {
@@ -780,11 +818,11 @@ async function completeTrade(sellId, boughtPlayer) {
         // Добавляем сообщения о сделке
         addMessage(`Вы продали ${soldPlayer.name} и купили ${boughtPlayer.name}.`);
         addMessage(`Комиссия за сделку: ${commission}. Разница между ценами игроков: ${Math.abs(price - sellPrice)}`);
-        addMessage(`Итоговая стоимость сделки: ${totalCost}🪙`);
-        addMessage(`Ваш баланс: ${gameState.coins}🪙.`);
-        addMessage(`📊 Новый общий рейтинг команды: ${calculateTeamRating(gameState.team, gameState.tempBoost)}`);
+        addMessage(`Итоговая стоимость сделки: ${totalCost}<img src="coin.png" class="team-logo">`);
+        addMessage(`Ваш баланс: ${gameState.coins}<img src="coin.png" class="team-logo">.`);
+        addMessage(`📊 Новый общий рейтинг команды: ${calculateTeamRating(gameState.team, gameState.tempBoost)}⭐`);
     } else {
-        addMessage(`Не хватает 🪙 для покупки! Нужно ${totalCost}🪙, у вас ${gameState.coins}🪙.`);
+        addMessage(`Не хватает <img src="coin.png" class="team-logo"> для покупки! Нужно ${totalCost}<img src="coin.png" class="team-logo">, у вас ${gameState.coins}<img src="coin.png" class="team-logo">.`);
     }
 }
 
@@ -795,7 +833,7 @@ function trainPlayer(trainingType) {
     
     // Проверяем баланс
     if (gameState.coins < cost) {
-        addMessage(`Не хватает🪙! Нужно ${cost}, у вас ${gameState.coins}.`);
+        addMessage(`Не хватает<img src="coin.png" class="team-logo">! Нужно ${cost}, у вас ${gameState.coins}.`);
         return;
     }
     
@@ -806,7 +844,7 @@ function trainPlayer(trainingType) {
     // Отображаем баланс
     const coinsDisplay = document.createElement('div');
     coinsDisplay.className = 'coins-display';
-    coinsDisplay.textContent = `Ваш баланс: ${gameState.coins}🪙.`;
+    coinsDisplay.innerHTML = `Ваш баланс: ${gameState.coins}<img src="coin.png" class="team-logo">.`;
     screenContent.appendChild(coinsDisplay);
     
     // Отображаем текущий состав команды
@@ -826,20 +864,18 @@ function trainPlayer(trainingType) {
     });
     screenContent.appendChild(teamList);
     
-    // Добавляем поле для выбора игрока
-    addInputAction('Тренировать игрока', 'Введите номер игрока', (input) => {
-        const playerId = parseInt(input) - 1;
-        if (isNaN(playerId)) {
-            addMessage('Пожалуйста, введите число');
-            return;
-        }
-        
-        if (playerId >= 0 && playerId < gameState.team.length) {
-            completeTraining(trainingType, playerId);
-        } else {
-            addMessage('Неверный номер игрока');
-        }
-    });
+    // Выбор игрока из выпадающего списка
+    const trainablePlayers = gameState.team.filter(p => p.rating < 12);
+    if (trainablePlayers.length === 0) {
+        addMessage('Все игроки достигли максимального уровня!');
+    } else {
+        addPlayerSelector(
+            '-- Выберите игрока для тренировки --',
+            gameState.team,
+            (playerId) => completeTraining(trainingType, playerId),
+            'Тренировать'
+        );
+    }
     
     addAction('Назад ⬅️', showMatchPreparationScreen);
 }
@@ -858,7 +894,7 @@ async function completeTraining(trainingType, playerId) {
     
     // Проверяем баланс
     if (gameState.coins < cost) {
-        addMessage(`Не хватает 🪙! Нужно ${cost}🪙, у вас ${gameState.coins}🪙.`);
+        addMessage(`Не хватает <img src="coin.png" class="team-logo">! Нужно ${cost}<img src="coin.png" class="team-logo">, у вас ${gameState.coins}<img src="coin.png" class="team-logo">.`);
         return;
     }
     
@@ -900,11 +936,11 @@ async function completeTraining(trainingType, playerId) {
     
     // Обработчик для кнопки "Показать результат"
     resultButton.onclick = () => {
-        addMessage(`Списано: ${cost}🪙`);
-        addMessage(`Ваш баланс: ${gameState.coins}🪙`);
+        addMessage(`Списано: ${cost}<img src="coin.png" class="team-logo">`);
+        addMessage(`Ваш баланс: ${gameState.coins}<img src="coin.png" class="team-logo">`);
         addMessage(`Игрок ${player.name} улучшил рейтинг на +${increase}`);
         addMessage(`Новый рейтинг: ${player.rating}`);
-        addMessage(`📊 Новый общий рейтинг команды: ${newTeamRating}`);
+        addMessage(`📊 Новый общий рейтинг команды: ${newTeamRating}⭐`);
         
         // Удаляем кнопку "Показать результат"
         resultButton.remove();
@@ -922,8 +958,8 @@ async function completeTraining(trainingType, playerId) {
             trainButton.style.opacity = '';
             trainButton.style.cursor = '';
             trainButton.textContent = trainingType === 'football' 
-                ? 'Футбольная тренировка (+2 или 3) - 30🪙' 
-                : 'Тренировка по физподготовке (+1 или 2) - 20🪙';
+                ? 'Футбольная тренировка (+2 или 3) - 30<img src="coin.png" class="team-logo">' 
+                : 'Тренировка по физподготовке (+1 или 2) - 20<img src="coin.png" class="team-logo">';
             
             cancelButton.disabled = false;
             cancelButton.style.opacity = '';
@@ -966,7 +1002,7 @@ function showPostersScreen() {
     
     // Инструкция для игрока
     const instructions = document.createElement('p');
-    instructions.innerHTML = '<h3>Нарисуйте плакат для болельщиков (+1-2 к рейтингу на 1 матч)</h3>';
+    instructions.innerHTML = '<h4>Нарисуйте плакат для болельщиков (+1-2 к рейтингу на 1 матч)</h4>';
     screenContent.appendChild(instructions);
     
     // Создаем canvas для рисования
@@ -1030,7 +1066,6 @@ function showPostersScreen() {
 }
 
 // Инициализирует рисование на canvas
-
 function initDrawing(canvas, colorPicker, brushSize, clearBtn) {
     const ctx = canvas.getContext('2d');
     let isDrawing = false;
@@ -1082,13 +1117,22 @@ function initDrawing(canvas, colorPicker, brushSize, clearBtn) {
 
 // Сохраняет плакат и устанавливает временный бонус
 function savePoster(canvas) {
-    // Сохраняем изображение плаката
+    // Сохраняем оригинальное изображение плаката
     gameState.playerPoster = canvas.toDataURL();
     
-    // Определяем бонус (1 с шансом 70%, 2 с шансом 30%)
+    // Создаем чистую HTML-структуру без inline-стилей
+    gameState.playerPosterStadium = `
+        <div class="stadium-poster-container">
+            <div class="stadium-poster" style="background-image: url('${gameState.playerPoster}')"></div>
+        </div>
+    `;
+    
+    // Определяем бонус
     gameState.tempBoost = Math.random() < 0.7 ? 1 : 2;
     gameState.postersBought = true;
     gameState.coins -= 10;
+    
+    showPosterConfirmation();
 }
 
 // Показывает экран подтверждения создания плаката
@@ -1096,29 +1140,24 @@ function showPosterConfirmation() {
     clearScreen();
     screenTitle.textContent = 'Плакат сохранен!';
     
-    // Отображаем созданный плакат
-    const posterImg = document.createElement('img');
-    posterImg.src = gameState.playerPoster;
-    posterImg.style.maxWidth = '300px';
-    posterImg.style.margin = '10px auto';
-    posterImg.style.display = 'block';
-    posterImg.style.border = '2px solid #000';
-    posterImg.style.backgroundColor = '#ffffff';
-    posterImg.style.padding = '10px';
-    screenContent.appendChild(posterImg);
+    // Отображаем оригинальный плакат (без фона стадиона)
+    const posterPreview = document.createElement('div');
+    posterPreview.className = 'poster-preview-container';
+    posterPreview.innerHTML = `
+        <h4>Ваш плакат:</h4>
+        <div class="poster-frame">
+            <img src="${gameState.playerPoster}" class="poster">
+        </div>
+    `;
+    screenContent.appendChild(posterPreview);
     
-    // Рассчитываем рейтинги до и после бонуса
-    const baseRating = calculateTeamRating(gameState.team);
-    const newRating = calculateTeamRating(gameState.team, gameState.tempBoost);
-
     // Отображаем информацию о бонусе
     const boostInfo = document.createElement('div');
     boostInfo.innerHTML = `
-        <h3>Ваш плакат добавлен!</h3>
-        <h3>Бонус к рейтингу: +${gameState.tempBoost}</h3>
-        <h3>Был рейтинг: ${baseRating}⭐</h3>
-        <h3>Теперь рейтинг: ${newRating}⭐</h3>
-        <h3>Действует только на следующий матч</h3>
+        <h4>Бонус к рейтингу: +${gameState.tempBoost}</h4>
+        <h4>Был рейтинг: ${calculateTeamRating(gameState.team)}⭐</h4>
+        <h4>Теперь рейтинг: ${calculateTeamRating(gameState.team, gameState.tempBoost)}⭐</h4>
+        <h4>Действует только на следующий матч</h4>
     `;
     screenContent.appendChild(boostInfo);
     
@@ -1208,13 +1247,13 @@ async function playMatch() {
     screenContent.appendChild(oppProbabilityDisplay);
     
     // Если есть плакат - отображаем его
-    if (gameState.playerPoster) {
+    if (gameState.playerPosterStadium) {
     const posterContainer = document.createElement('div');
     posterContainer.className = 'match-poster-container';
     posterContainer.innerHTML = `
         <h3 class="poster-title">Поддержка болельщиков:</h3>
-        <div class="match-poster-frame">
-            <img src="${gameState.playerPoster}" class="match-poster">
+        <div>
+            ${gameState.playerPosterStadium}
         </div>
     `;
     screenContent.appendChild(posterContainer);
@@ -1288,12 +1327,12 @@ async function playMatch() {
         result = 'win';
         gameState.coins += 50;
         gameState.wins++;
-        addMessage("Вы выиграли матч! +50🪙.");
+        addMessage(`Вы выиграли матч! +50<img src="coin.png" class="team-logo">.`);
     } else if (yourGoals === opponentGoals) {
         result = 'draw';
         gameState.coins += 20;
         gameState.draws++;
-        addMessage("Ничья! +20🪙.");
+        addMessage(`Ничья! +20<img src="coin.png" class="team-logo">.`);
     } else {
         result = 'lose';
         gameState.loses++;
@@ -1305,6 +1344,8 @@ async function playMatch() {
         const ratingBeforeReset = calculateTeamRating(gameState.team, gameState.tempBoost);
         gameState.tempBoost = 0;
         gameState.postersBought = false;
+        gameState.playerPoster = null;
+        gameState.playerPosterStadium = null;
         const ratingAfterReset = calculateTeamRating(gameState.team);
         
         addMessage('Бонус от плакатов больше не действует');
@@ -1312,7 +1353,7 @@ async function playMatch() {
         addMessage(`Текущий рейтинг: ${ratingAfterReset}`);
     }
 
-    addMessage(`Ваш баланс: ${gameState.coins}🪙.`);
+    addMessage(`Ваш баланс: ${gameState.coins}<img src="coin.png" class="team-logo">.`);
     
     // Переходим к следующему матчу или проверяем выход в плей-офф
     if (gameState.currentMatch < 2) {
@@ -1382,7 +1423,7 @@ function showPlayoffScreen(stage) {
     // Отображаем баланс
     const coinsDisplay = document.createElement('div');
     coinsDisplay.className = 'coins-display';
-    coinsDisplay.textContent = `Ваш баланс: ${gameState.coins}🪙.`;
+    coinsDisplay.innerHTML = `Ваш баланс: ${gameState.coins}<img src="coin.png" class="team-logo">.`;
     screenContent.appendChild(coinsDisplay);
     
     // Отображаем состав команды
@@ -1390,9 +1431,9 @@ function showPlayoffScreen(stage) {
     
     // Добавляем кнопки действий
     addAction('🔄 1. Покупка/продажа игроков', showTradeScreen);
-    addAction('👟 2. Футбольная тренировка (+2 или 3) - 30🪙', () => trainPlayer('football'));
-    addAction('💪 3. Тренировка по физподготовке (+1 или 2) - 20🪙', () => trainPlayer('fitness'));
-    addAction('🖼️ 4. Плакаты для болельщиков (+1 или 2 на один матч) - 10🪙', tryShowPostersScreen);
+    addAction('👟 2. Футбольная тренировка (+2 или 3) - 30<img src="coin.png" class="team-logo">', () => trainPlayer('football'));
+    addAction('💪 3. Тренировка по физподготовке (+1 или 2) - 20<img src="coin.png" class="team-logo">', () => trainPlayer('fitness'));
+    addAction('🖼️ 4. Плакаты для болельщиков (+1 или 2 на один матч) - 10<img src="coin.png" class="team-logo">', tryShowPostersScreen);
     addAction('📜 5. Посмотреть правила игры', displayRules);
     addAction('⚽ 6. Начать матч', () => playPlayoffMatch(stage));
 }
@@ -1488,13 +1529,13 @@ async function playPlayoffMatch(stage) {
     screenContent.appendChild(oppProbabilityDisplay);
     
     // Если есть плакат - отображаем его
-    if (gameState.playerPoster) {
+    if (gameState.playerPosterStadium) {
     const posterContainer = document.createElement('div');
     posterContainer.className = 'match-poster-container';
     posterContainer.innerHTML = `
         <h3 class="poster-title">Поддержка болельщиков:</h3>
-        <div class="match-poster-frame">
-            <img src="${gameState.playerPoster}" class="match-poster">
+        <div>
+            ${gameState.playerPosterStadium}
         </div>
     `;
     screenContent.appendChild(posterContainer);
@@ -1579,7 +1620,7 @@ async function playPlayoffMatch(stage) {
             gameState.final_res = 1;
         }
         
-        addMessage(`Вы выиграли ${stage.toLowerCase()}! +${reward}🪙.`);
+        addMessage(`Вы выиграли ${stage.toLowerCase()}! +${reward}<img src="coin.png" class="team-logo">.`);
         
         // Переход на следующий этап или завершение турнира
         if (stage === 'Полуфинал') {
@@ -1603,7 +1644,7 @@ async function playPlayoffMatch(stage) {
             const reward = stage === 'Полуфинал' ? 100 : 150;
             gameState.coins += reward;
             gameState.wins++;
-            addMessage(`Вы выиграли в серии пенальти! +${reward}🪙.`);
+            addMessage(`Вы выиграли в серии пенальти! +${reward}<img src="coin.png" class="team-logo">.`);
             
             if (stage === 'Полуфинал') {
                 addAction('Начать финал', () => {
@@ -1638,6 +1679,8 @@ async function playPlayoffMatch(stage) {
     if (gameState.postersBought) {
         gameState.tempBoost = 0;
         gameState.postersBought = false;
+        gameState.playerPoster = null;
+        gameState.playerPosterStadium = null;
         addMessage('Бонус от плакатов закончился.');
     }
 }
@@ -1758,7 +1801,7 @@ function endTournament() {
     // Отображаем финальный баланс
     const coinsDisplay = document.createElement('div');
     coinsDisplay.className = 'coins-display';
-    coinsDisplay.textContent = `Финальный баланс: ${gameState.coins}🪙`;
+    coinsDisplay.innerHTML = `Финальный баланс: ${gameState.coins}<img src="coin.png" class="team-logo">`;
     screenContent.appendChild(coinsDisplay);
 
     // Показываем финальный состав команды

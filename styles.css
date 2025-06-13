@@ -372,13 +372,80 @@ body {
     font-size: 1.1em; 
 }
 
-/* Стили для плаката матча */
-.match-poster-frame {
-    background-color: white; /* Белый фон */
-    padding: 10px;
-    display: inline-block;
+/* Стили для селектора выбора игроков */
+.player-select-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: center;
 }
-.match-poster {
-    background-color: white; /* Белый фон */
+
+.player-select {
+    flex-grow: 1;
+    padding: 12px;
+    border: 1px solid #4CAF50;
+    border-radius: 6px;
+    background-color: rgba(20, 60, 20, 0.7);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.player-select:focus {
+    outline: none;
+    border-color: #8BC34A;
+    box-shadow: 0 0 0 2px rgba(139, 195, 74, 0.3);
+}
+
+.player-select:hover {
+    background-color: rgba(30, 70, 30, 0.7);
+    border-color: #8BC34A;
+}
+
+.player-select option {
+    padding: 10px;
+    background-color: rgba(10, 40, 10, 0.9);
+    color: white;
+}
+
+/* Стили для плаката */
+.poster-frame {
+    display: inline-block;
+    border: 2px solid #000;
+    padding: 10px;
+    background: white;
+    margin: 10px auto;
+}
+.poster {
+    max-width: 300px;
+    max-height: 200px;
     display: block;
+}
+
+/* Стили для плаката на стадионе */
+.stadium-poster-container {
+    background-image: url('stadium_for_posters.png');
+    background-size: cover;
+    width: 300px;
+    height: 200px;
+    margin: 10px auto;
+    position: relative;
+    border: 2px solid #000;
+}
+
+.stadium-poster {
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: white;
+    width: 200px;
+    height: 120px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid #000;
+    padding: 5px;
 }
