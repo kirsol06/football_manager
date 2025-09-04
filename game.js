@@ -1376,7 +1376,7 @@ async function checkPlayoffQualification() {
     }
 }
 
-// Начинает плей-офф турнира
+// Начиет этап плей-офф, выбирая противников
 function startPlayoff() {
     gameState.inPlayoff = true;
     gameState.tempBoost = 0;
@@ -1390,8 +1390,23 @@ function startPlayoff() {
     gameState.playoffOpponent = semifinalOpponents[Math.floor(Math.random() * semifinalOpponents.length)];
     gameState.finalOpponent = finalOpponents[Math.floor(Math.random() * finalOpponents.length)];
     
-    // Показываем экран полуфинала
-    showPlayoffScreen('Полуфинал');
+    // Устанавливаем первого соперника (полуфинал)
+    gameState.currentOpponent = gameState.playoffOpponent;
+    
+    // Начинаем матч плей-офф
+    startPlayoffMatch();
+}
+
+// Начинает матч плей-офф, обновляет трансферный рынок
+function startPlayoffMatch() {
+    generateTransferMarket(); // Обновляем трансферный рынок
+    
+    // Определяем текущий этап плей-офф
+    const stage = gameState.currentOpponent === gameState.finalOpponent 
+        ? 'Финал' 
+        : 'Полуфинал';
+    
+    showPlayoffScreen(stage);
 }
 
 //  Показывает экран подготовки к матчу плей-офф
@@ -1409,9 +1424,6 @@ function showPlayoffScreen(stage) {
         gameState.teamRatings[gameState.currentOpponent] + (stage === 'Полуфинал' ? 5 : 10),
         70
     );
-
-    // Обновляем трансферный рынок
-    generateTransferMarket();
     
     // Отображаем информацию о сопернике
     const opponentInfo = document.createElement('div');
@@ -1624,7 +1636,8 @@ async function playPlayoffMatch(stage) {
         // Переход на следующий этап или завершение турнира
         if (stage === 'Полуфинал') {
             addAction('Начать финал', () => {
-                showPlayoffScreen('Финал');
+                gameState.currentOpponent = gameState.finalOpponent;
+                startPlayoffMatch();
             });
         } else {
             addMessage("🏆 Вы выиграли финал! Вы чемпион! 🏆");
@@ -1648,7 +1661,8 @@ async function playPlayoffMatch(stage) {
             if (stage === 'Полуфинал') {
                 addAction('Начать финал', () => {
                     gameState.prefinal_res = 1;
-                    showPlayoffScreen('Финал');
+                    gameState.currentOpponent = gameState.finalOpponent;
+                    startPlayoffMatch();
                 });
             } else {
                 addMessage("🏆 Вы выиграли финал! Вы чемпион! 🏆");
@@ -1689,6 +1703,7 @@ async function penaltyShootout() {
     addMessage("\n=== Серия пенальти! ===");
     let yourPenaltyGoals = 0;
     let opponentPenaltyGoals = 0;
+    await sleep(2000);
 
     // Первые 3 удара
     for (let i = 0; i < 3; i++) {
@@ -1715,8 +1730,8 @@ async function penaltyShootout() {
 
     // Дополнительные удары, если счет равен
     while (yourPenaltyGoals === opponentPenaltyGoals) {
-        addMessage(`\nСчет равный. Дополнительный удар! Счет: ${yourPenaltyGoals} - ${opponentPenaltyGoals}`);
-
+        addMessage(`\nСчет равный. Дополнительный удар!`);
+        await sleep(2000);
         // Ваша команда бьет
         if (Math.random() < 0.7) {
             yourPenaltyGoals++;
